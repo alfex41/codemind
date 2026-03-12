@@ -192,4 +192,4 @@ All responses follow: `{"success": true, "data": {...}, "error": null}`
 
 ---
 
-Built for the **Endee.io** campus placement evaluation — demonstrating Semantic Search, RAG, Recommendations, and Agentic AI, all powered by Endee vector database.
+Demonstrating Semantic Search, RAG, Recommendations, and Agentic AI, all powered by Endee vector database.
